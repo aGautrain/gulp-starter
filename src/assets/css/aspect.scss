@@ -1,0 +1,45 @@
+$color-main: white;;
+$color-text: black;
+$font-main: "Oswald", sans-serif;
+$font-aux: "Do Hyeon", sans-serif;
+$font-text: "Open Sans", sans-serif;
+
+body {
+  color: $color-text;
+  background-color: $color-main;
+  font-family: $font-text;
+  text-align: center;
+}
+
+h1 {
+  font-size: 500%;
+  color: gray;
+  padding-right: 200px;
+  font-family: $font-main;
+}
+
+h2 {
+  font-size: 200%;
+  font-weight: normal;
+  color: lightgray;
+  font-family: $font-main;
+}
+
+#visualizer {
+
+  margin-top: 100px;
+
+  .card {
+
+    .btn {
+      opacity: 0;
+      transition: 0.3s;
+    }
+  }
+
+  .card:hover {
+    .btn {
+      opacity: 1;
+    }
+  }
+}

@@ -1,19 +1,22 @@
 const gulp = require('gulp-help')(require('gulp')),
       uglify = require('gulp-uglify'),
       gzip = require('gulp-gzip'),
-      webserver = require('gulp-webserver'),
       connect = require('gulp-connect'),
       imagemin = require('gulp-imagemin'),
-	  sass = require('gulp-sass'),
-	  cssbeautify = require('gulp-cssbeautify'),
+      sass = require('gulp-sass'),
+      cssbeautify = require('gulp-cssbeautify'),
       jshint = require('gulp-jshint'),
       pump = require('pump'),
       del = require('del'),
       ftp = require('vinyl-ftp'),
       runSequence = require('run-sequence'),
       fs = require('fs'),
-      size = require('gulp-size');
-
+      size = require('gulp-size'),
+	  debug = require('gulp-debug'),
+      browserify = require('browserify'),
+      source = require('vinyl-source-stream'),
+      buffer = require('vinyl-buffer');
+	  
 const config = require('./config'),
       logger = require('./logger');
 
@@ -38,26 +41,29 @@ gulp.task('lint', 'Analyze JS code with JSHint', function (cb) {
   );
 });
 
-gulp.task('js', 'Uglify scripts into dist/assets/js/', ['lint'], function (cb) {
+gulp.task('lib-js', 'Uglify scripts into dist/assets/js/', function (cb) {
   pump([
-		// Processing homemade scripts
-        gulp.src('src/assets/js/*.js'),
-		uglify(),
-		size({
-			showFiles: true
-		}),
-        gulp.dest('dist/assets/js'),
-		
-		// Processing lib scripts
-		gulp.src('src/assets/js/lib/*.js'),
-		uglify(),
-		size({
-			showFiles: true
-		}),
-        gulp.dest('dist/assets/js')
-    ],
-	cb
-  );
+    gulp.src('./src/assets/js/lib/*.js'),
+    gulp.dest('./dist/assets/js'),
+    connect.reload()
+  ],
+  cb
+);
+});
+
+
+gulp.task('js', 'Put all .js files into dist directory after bundling them, linting, and uglifying', function (cb) {
+  pump([
+    browserify({
+      entries: './src/assets/js/main.js',
+      debug: true
+    }).bundle(),
+    source('bundle.main.js'),
+    gulp.dest('./dist/assets/js'),
+    connect.reload()
+  ],
+  cb
+);
 });
 
 
@@ -83,7 +89,8 @@ gulp.task('app', 'Copy app folder from src/ to dist/', function (cb) {
 		size({
 			showFiles: true
 		}),
-        gulp.dest('dist/app')
+        gulp.dest('dist/app'),
+		connect.reload()
     ],
 	cb
   );
@@ -119,6 +126,10 @@ gulp.task('clean', 'Remove content of dist/', function() {
 });
 
 gulp.task('webserver', 'Launch webserver including livereload', ['default'], function(cb) {
+
+  gulp.watch(['./src/app/*.html'], ['app']);
+  gulp.watch(['./src/assets/js/*.js'], ['js']);
+  gulp.watch(['./src/assets/css/*.scss'], ['scss']);
 	connect.server({
 		root: 'dist',
 		livereload: true
@@ -145,7 +156,7 @@ gulp.task('deploy', 'Deploy code onto FTP hosting provider given config.js', ['d
 
 
 gulp.task('default', function(done) {
-    runSequence('clean', 'css', 'js', 'app', 'imgs', 'stats', function() {
+    runSequence('clean', 'css', 'lib-js', 'js', 'app', 'imgs', 'stats', function() {
         done();
     });
 });

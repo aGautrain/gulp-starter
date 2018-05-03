@@ -32,5 +32,11 @@
     "pump": "^3.0.0",
     "run-sequence": "^2.2.1",
     "vinyl-ftp": "^0.6.1"
+  },
+  "dependencies": {
+    "browserify": "^16.2.0",
+    "gulp-debug": "^4.0.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   }
 }
